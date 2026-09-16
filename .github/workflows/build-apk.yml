@@ -19,21 +19,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          gradle-version: '8.2'
-
-      - name: Find and Build Project
+      - name: Build APK
         run: |
-          PROJ_DIR=$(find . -maxdepth 3 -name "settings.gradle" -exec dirname {} \;)
-          echo "Project directory found: $PROJ_DIR"
-          cd "$PROJ_DIR"
-          gradle assembleDebug --stacktrace
+          TARGET_DIR=$(dirname $(find . -maxdepth 3 -name "settings.gradle" | head -n 1))
+          echo "Target dir: $TARGET_DIR"
+          cd "$TARGET_DIR"
+          
+          # Setup wrapper if missing
+          if [ ! -f "gradlew" ]; then
+            curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
+            unzip -q gradle.zip
+            ./gradle-8.2/bin/gradle wrapper
+          fi
+          
+          chmod +x gradlew
+          ./gradlew assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MazharsWorld-apk
+          name: MazharsWorld-debug-apk
           path: "**/build/outputs/apk/debug/*.apk"
-          if-no-files-found: error
