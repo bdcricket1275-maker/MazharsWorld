@@ -19,19 +19,20 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.2'
+
       - name: Build APK
         run: |
           TARGET_DIR=$(dirname $(find . -maxdepth 3 -name "settings.gradle" | head -n 1))
           echo "Target dir: $TARGET_DIR"
           cd "$TARGET_DIR"
-          
-          # Setup wrapper if missing
-          if [ ! -f "gradlew" ]; then
-            curl -sSL -o gradle.zip https://services.gradle.org/distributions/gradle-8.2-bin.zip
-            unzip -q gradle.zip
-            ./gradle-8.2/bin/gradle wrapper
-          fi
-          
+          gradle wrapper
           chmod +x gradlew
           ./gradlew assembleDebug --no-daemon --stacktrace
 
