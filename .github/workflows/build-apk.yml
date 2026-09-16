@@ -24,17 +24,16 @@ jobs:
         with:
           gradle-version: '8.2'
 
-      - name: Build APK directly with Gradle
+      - name: Find and Build Project
         run: |
-          if [ -f "settings.gradle" ]; then
-            gradle assembleDebug --stacktrace
-          elif [ -f "MazharsWorld/settings.gradle" ]; then
-            cd MazharsWorld
-            gradle assembleDebug --stacktrace
-          fi
+          PROJ_DIR=$(find . -maxdepth 3 -name "settings.gradle" -exec dirname {} \;)
+          echo "Project directory found: $PROJ_DIR"
+          cd "$PROJ_DIR"
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: MazharsWorld-debug-apk
+          name: MazharsWorld-apk
           path: "**/build/outputs/apk/debug/*.apk"
+          if-no-files-found: error
